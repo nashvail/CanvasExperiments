@@ -68,7 +68,7 @@
     height,
     numRows,
     numCols,
-    snakeLength = 8,
+    snakeLength = 20,
     snakeHeadPosition = Object.create(Coord).init(20, 10),
     move = Coord.moveRight;
    
@@ -192,19 +192,22 @@
 
   // Event listeners
   window.addEventListener('keydown', (event) => {
-    event.preventDefault();
     switch(event.keyCode) {
       case 37: // Left
         move = Coord.moveLeft;
+        event.preventDefault();
       break;
       case 38: // Up
         move = Coord.moveUp;
+        event.preventDefault();
       break;
       case 39: // Right
         move = Coord.moveRight;
+        event.preventDefault();
       break;
       case 40: // Down
         move = Coord.moveDown;
+        event.preventDefault();
       break;
       default: 
         // Ignore
