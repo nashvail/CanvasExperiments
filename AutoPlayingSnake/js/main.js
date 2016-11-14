@@ -74,7 +74,7 @@
    
    // Stores the previous frame's position of the snake
    var prevSnakePosition = [];
-   var debouncedNextFrame = debounce(nextFrame, 100);
+   var debouncedNextFrame = debounce(nextFrame, 50);
 
   // Functions 
   function populatePixels() {
@@ -89,8 +89,8 @@
     pixels = [];
 
     for(var row = 0; row < numRows; row++) {
-			for(var col = 0; col < numCols; col++) {
-				pixels.push(Object.create(Pixel).init({x: col, y: row}));
+      for(var col = 0; col < numCols; col++) {
+        pixels.push(Object.create(Pixel).init({x: col, y: row}));
 			}
 		}
   }
@@ -101,8 +101,6 @@
     requestAnimationFrame(nextFrame);
   }
 
-  // The two below will have to share the same function to draw it 
-  
   function nextFrame() {
     ctx.clearRect(0, 0, width, height); 
 
@@ -150,6 +148,14 @@
       return Object.create(Coord).init(startPos++, headPosition.y);
     });
   }
+
+  function snakeIsMovingVertically() {
+    return move === Coord.moveUp || move === Coord.moveDown;
+  }
+
+  function snakeIsMovingHorizontally() {
+    return move === Coord.moveRight || move === Coord.moveLeft;
+  }
  
   function range(start, stop, step) {
     if (stop == null) {
@@ -191,22 +197,29 @@
   init();
 
   // Event listeners
+
+  window.addEventListener('resize', init);
+
   window.addEventListener('keydown', (event) => {
     switch(event.keyCode) {
       case 37: // Left
-        move = Coord.moveLeft;
+        if(snakeIsMovingVertically())
+          move = Coord.moveLeft;
         event.preventDefault();
       break;
       case 38: // Up
-        move = Coord.moveUp;
+        if(snakeIsMovingHorizontally())
+          move = Coord.moveUp;
         event.preventDefault();
       break;
       case 39: // Right
-        move = Coord.moveRight;
+        if(snakeIsMovingVertically())
+          move = Coord.moveRight;
         event.preventDefault();
       break;
       case 40: // Down
-        move = Coord.moveDown;
+        if(snakeIsMovingHorizontally())
+          move = Coord.moveDown;
         event.preventDefault();
       break;
       default: 
