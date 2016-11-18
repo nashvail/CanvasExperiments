@@ -58,17 +58,21 @@
     GRID_COLOR = '#222', // Color of the squares that make up the grid
     BG_COLOR = '#101010',
     PIXEL_DIM = 20, // (Grid square dimension) The width and height of each grid square
-    PIXEL_SEPARATION = 5, // PIXEL_SEPARATION between each square in the grid
+    PIXEL_SEPARATION = 2, // PIXEL_SEPARATION between each square in the grid
     // This factor after taking in account the dimension of each pixel and the separation between them
     // helps in deciding the number of pixels in the grid when calculated later with window width and height
     FACTOR = PIXEL_DIM + PIXEL_SEPARATION;
+
+   // For food
+   var foodPixel,
+    FOOD_COLOR = '#FFF';
     
   var pixels, // This needs to be a two dimensional array alright? 
     width,
     height,
     numRows,
     numCols,
-    snakeLength = 20,
+    snakeLength = 5,
     snakeHeadPosition = Object.create(Coord).init(20, 10),
     move = Coord.moveRight;
    
@@ -90,7 +94,7 @@
 
     for(var row = 0; row < numRows; row++) {
       for(var col = 0; col < numCols; col++) {
-        pixels.push(Object.create(Pixel).init({x: col, y: row}));
+        pixels.push(Object.create(Pixel).init({x: col, y: row, color: GRID_COLOR}));
 			}
 		}
   }
@@ -98,6 +102,7 @@
   function init() {
     document.getElementsByTagName('body')[0].setAttribute('bgcolor', BG_COLOR); 
     populatePixels();
+    foodPixel = randomPixelOnGrid();
     requestAnimationFrame(nextFrame);
   }
 
@@ -111,37 +116,129 @@
 
     for(var i = 0; i < pixels.length; i++) {
       var cp = pixels[i]; // Current Pixel
-      ctx.globalAlpha = cp.alpha;
-      ctx.fillStyle = cp.color;
-      ctx.fillRect(cp.coord.x * FACTOR, cp.coord.y * FACTOR, cp.width, cp.height);
 
-      if(isASnakePixel(cp, snakePosition)) { // If the pixel is part of snake it should light up
-        ctx.fillStyle = SNAKE_COLOR;
-        ctx.fillRect(cp.coord.x * FACTOR, cp.coord.y * FACTOR, cp.width, cp.height);
+      drawPixel(cp, GRID_COLOR);
+      if(isASnakePixel(cp, snakePosition)) {
+        drawPixel(cp, SNAKE_COLOR);
+
+        if(isFoodPixel(cp)) { // If food and snake pixel coincide that means the snake ate the food
+          snakeLength++;
+          foodPixel = randomPixelOnGrid();
+        }
       }
 
-    }
+      if(isFoodPixel(cp)) 
+        drawPixel(cp, FOOD_COLOR);
 
+    }
     prevSnakePosition = snakePosition;
     move.call(snakeHeadPosition);
     requestAnimationFrame(debouncedNextFrame);
   }
 
-  function newSnakePosition(snakeHeadPosition) {
-    var newPosition = [];
-    newPosition = newPosition.concat(prevSnakePosition.slice(1));
-    newPosition.push(snakeHeadPosition);
-    return newPosition;
+  function snakeAteFood() {
+
   }
 
+  /**
+   * Draws a single pixel on the gird.
+   * 
+   * @param {Object} pixel - Pixel to be drawn.
+   * @param {String} color - Color of the pixel.
+   */
+  function drawPixel(pixel, color) {
+    ctx.fillStyle = color;
+    ctx.fillRect(pixel.coord.x * FACTOR, pixel.coord.y * FACTOR, pixel.width, pixel.height);
+  }
+
+  /**
+   * Returns a random pixel on the grid.
+   * @returns {object} - a Pixel Object
+   */
+  function randomPixelOnGrid() {
+    return Object.create(Pixel).init({
+      x: Math.floor(Math.random() * numCols), 
+      y: Math.floor(Math.random() * numRows),
+      color: FOOD_COLOR
+    });
+  }
+
+ /**
+  * On the Pixel if grid checks if a pixel is a food pixel.
+
+  * @param {Object} pixel - Should be a Pixel Object
+  * @returns {Boolean}
+  */
+ function isFoodPixel(pixel) {
+    return pixel.coord.equals(foodPixel.coord);
+  }
+
+  /**
+   * Checks if the current frame is the first animation frame, 
+   * since there is setup to be done in the first animation frame.
+   * 
+   * @returns {Boolean}
+   */
   function isFirstAnimationFrame() {
     return prevSnakePosition.length === 0; // In the beginning there is no previous snake position.
   }
 
+  // Snake Functions
+
+  /**
+   * Returns an array of Coord objects each holding coordinates
+   * of grid pixels to be lit up.
+   * 
+   * @param {Object} snakeHeadPosition - A Coord Object
+   * @returns {Array}
+   */
+  function newSnakePosition(snakeHeadPosition) {
+    var changeInLength = snakeLength - prevSnakePosition.length;
+    var newPosition = [].concat(prevSnakePosition.slice(1));
+    newPosition.push(snakeHeadPosition);
+
+    if(changeInLength > 0) { 
+      var deltaX = newPosition[1].x - newPosition[0].x;
+      var deltaY = newPosition[1].y - newPosition[0].y;
+
+      if(deltaY < 0) { // Moving up
+        range(changeInLength)
+          .forEach( (_, i) => newPosition.unshift(Object.create(Coord).init(newPosition[0].x ,newPosition[0].y + i +1)));
+      } else if(deltaY > 0) { // Moving down
+        range(changeInLength)
+          .forEach( (_, i) => newPosition.unshift(Object.create(Coord).init(newPosition[0].x ,newPosition[0].y - i - 1)));
+      } else if(deltaX < 0) { // Moving right
+        range(changeInLength)
+          .forEach( (_, i) => newPosition.unshift(Object.create(Coord).init(newPosition[0].x - i - 1 ,newPosition[0].y)));
+      } else if(deltaX > 0) { // Moving left
+        range(changeInLength)
+          .forEach( (_, i) => newPosition.unshift(Object.create(Coord).init(newPosition[0].x + i + 1 ,newPosition[0].y)));
+      }
+    }
+
+    return newPosition;
+  }
+
+  /**
+   * Checks if passed in pixel is part of snake and should 
+   * be lit up or not.
+   * 
+   * @param {Object} pixel
+   * @param {Array} snake
+   * @returns {Boolean} - If pixel is part of the snake or not.
+   */
   function isASnakePixel(pixel, snake) {
     return snake.some(snakePixel => snakePixel.x === pixel.coord.x && snakePixel.y === pixel.coord.y);
   }
   
+  /**
+   * Based on snakeLength and snakeHeadPosition returns an array of Coords that 
+   * represent the initial positions of snake pixels on the grid.
+   * 
+   * @param {Object} headPosition - A Coord Object representing the head of the snake.
+   * @param {Number} snakeLength
+   * @returns {Array} An array of Coords that represent the full snake.
+   */
   function initialSnakePosition(headPosition, snakeLength) {
     var startPos = headPosition.x - snakeLength + 1;
     return range(snakeLength).map( _ => {
@@ -156,7 +253,10 @@
   function snakeIsMovingHorizontally() {
     return move === Coord.moveRight || move === Coord.moveLeft;
   }
- 
+
+  // Utility function 
+
+  // Returns an array of integer based on the passed in parameters
   function range(start, stop, step) {
     if (stop == null) {
       stop = start || 0;
@@ -176,7 +276,14 @@
     return range;
   }
 
-  // Debounces the function (func) passed into it
+  /**
+   * Returns debounced version of the passed in func. 
+   * 
+   * @param {Function} func - Function to be debounced
+   * @param {Number} wait - Amount of seconds to wait
+   * @param {Boolean} immediate - Should fire on leading or trailing end of wait
+   * @returns
+   */
   function debounce(func, wait, immediate) {
     var timeout;
     return function() {
@@ -198,7 +305,7 @@
 
   // Event listeners
 
-  window.addEventListener('resize', init);
+  window.addEventListener('resize', debounce(init, 150));
 
   window.addEventListener('keydown', (event) => {
     switch(event.keyCode) {
@@ -226,7 +333,6 @@
         // Ignore
       break;
     };
-    console.log(event.keyCode);
   });
 
 })();
