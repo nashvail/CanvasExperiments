@@ -62,8 +62,12 @@
   };
 
   // Properties (Constants and Variables)
-  const SNAKE_COLOR = '#E49038',
-    GRID_COLOR = '#222', // Color of the squares that make up the grid
+  var pixels,
+    width,
+    height,
+    numRows,
+    numCols;
+  const GRID_COLOR = '#222', // Color of the squares that make up the grid
     BG_COLOR = '#101010',
     PIXEL_DIM = 20, // (Grid square dimension) The width and height of each grid square
     PIXEL_SEPARATION = 2, // PIXEL_SEPARATION between each square in the grid
@@ -72,21 +76,22 @@
     FACTOR = PIXEL_DIM + PIXEL_SEPARATION;
 
    // For food
-   var foodPixel,
-    FOOD_COLOR = '#FFF';
+   var foodPixel;
+   const FOOD_COLOR = '#FFF';
+
+   // Animation Variables
+   const FRAME_REFRESH_INTERVAL = 40, // (milliseconds) Smaller this value faster the snake moves
+    SNAKE_SHORTEN_INTERVAL = 1500; // milliseconds
     
-  var pixels,
-    width,
-    height,
-    numRows,
-    numCols,
-    snakeLength = 5,
-    snakeHeadPosition = Object.create(Coord).init(20, 10),
-    move = Coord.moveRight;
+   var snakeLength,
+    snakeHeadPosition,
+    move;
+   const SNAKE_COLOR = '#E49038',
+    INITIAL_SNAKE_LENGTH = 6;
    
    // Stores the previous frame's position of the snake
    var prevSnakeCoords = [];
-   var debouncedNextFrame = debounce(nextFrame, 30);
+   var debouncedNextFrame = debounce(nextFrame, FRAME_REFRESH_INTERVAL);
 
   // Functions 
   function populatePixels() {
@@ -110,18 +115,27 @@
   function init() {
     document.getElementsByTagName('body')[0].setAttribute('bgcolor', BG_COLOR); 
     populatePixels();
-    foodPixel = randomPixelOnGrid();
+    initGameState();
     requestAnimationFrame(nextFrame);
 
-    // Set a timer that would decrement the length of snake every 3 seconds
+    // Set a timer that would decrement the length of snake
     setInterval(function decreaseLength() {
-      console.log('I was called');
-      snakeLength--;
-      if(snakeLength === 0) {
-        console.log('Game over');
+      snakeLength = snakeLength - 1;
+      if(snakeLength <= 0) { // A sort of game over for you here dear
+        initGameState();
       }
-    }, 1500);
+    }, SNAKE_SHORTEN_INTERVAL);
+  }
 
+  /**
+   * Initializes the state of game.
+   */
+  function initGameState() {
+    prevSnakeCoords = [];
+    snakeLength = INITIAL_SNAKE_LENGTH;
+    foodPixel = randomPixelOnGrid();
+    snakeHeadPosition = randomPixelOnGrid().coord;
+    move = Coord.moveRight;
   }
 
   function nextFrame() {
@@ -208,22 +222,40 @@
     var changeInLength = snakeLength - prevSnakeCoords.length;
     var newPosition = prevSnakeCoords.slice(1);
     newPosition.push(snakeHeadPosition);
-    if(changeInLength > 0) { 
-      var deltaX = newPosition[1].x - newPosition[0].x;
-      var deltaY = newPosition[1].y - newPosition[0].y;
+
+    var lastSnakeCoord = newPosition[0],
+      secondLastSnakeCoord = newPosition[1];
+
+    if(prevSnakeCoords.length === 1 && changeInLength > 0) {
+      if(move === Coord.moveUp) {
+        range(changeInLength)
+          .forEach( (_, i) => newPosition.unshift(Object.create(Coord).init(lastSnakeCoord.x ,lastSnakeCoord.y + i +1)));
+      } else if(move === Coord.moveRight) {
+        range(changeInLength)
+          .forEach( (_, i) => newPosition.unshift(Object.create(Coord).init(lastSnakeCoord.x - i - 1 ,lastSnakeCoord.y)));
+      } else if(move === Coord.moveDown) {
+         range(changeInLength)
+          .forEach( (_, i) => newPosition.unshift(Object.create(Coord).init(lastSnakeCoord.x ,lastSnakeCoord.y - i - 1)));
+      } else if(move === Coord.moveLeft) {
+         range(changeInLength)
+          .forEach( (_, i) => newPosition.unshift(Object.create(Coord).init(lastSnakeCoord.x + i + 1 ,lastSnakeCoord.y)));
+      }
+    } else if(prevSnakeCoords.length > 1 && changeInLength > 0) { 
+      var deltaX = secondLastSnakeCoord.x - lastSnakeCoord.x,
+        deltaY = secondLastSnakeCoord.y - lastSnakeCoord.y;
 
       if(deltaY < 0) { // Moving up
         range(changeInLength)
-          .forEach( (_, i) => newPosition.unshift(Object.create(Coord).init(newPosition[0].x ,newPosition[0].y + i +1)));
+          .forEach( (_, i) => newPosition.unshift(Object.create(Coord).init(lastSnakeCoord.x ,lastSnakeCoord.y + i +1)));
       } else if(deltaY > 0) { // Moving down
         range(changeInLength)
-          .forEach( (_, i) => newPosition.unshift(Object.create(Coord).init(newPosition[0].x ,newPosition[0].y - i - 1)));
+          .forEach( (_, i) => newPosition.unshift(Object.create(Coord).init(lastSnakeCoord.x ,lastSnakeCoord.y - i - 1)));
       } else if(deltaX < 0) { // Moving right
         range(changeInLength)
-          .forEach( (_, i) => newPosition.unshift(Object.create(Coord).init(newPosition[0].x - i - 1 ,newPosition[0].y)));
+          .forEach( (_, i) => newPosition.unshift(Object.create(Coord).init(lastSnakeCoord.x - i - 1 ,lastSnakeCoord.y)));
       } else if(deltaX > 0) { // Moving left
         range(changeInLength)
-          .forEach( (_, i) => newPosition.unshift(Object.create(Coord).init(newPosition[0].x + i + 1 ,newPosition[0].y)));
+          .forEach( (_, i) => newPosition.unshift(Object.create(Coord).init(lastSnakeCoord.x + i + 1 ,lastSnakeCoord.y)));
       }
     } else if (changeInLength < 0) {
       newPosition.shift();
