@@ -18,20 +18,28 @@
       return this.x === anotherCoord.x && this.y === anotherCoord.y;
     },
     moveRight() {
-      this.x = (++this.x) % numCols;
+      if(this.x + 1 === numCols)
+        this.x = 0;
+       else 
+        this.x = this.x + 1;
     },
     moveLeft() {
-      this.x--;
-      if(this.x < 0)
-        this.x = numCols;
+      if(this.x - 1 < 0) 
+        this.x = numCols - 1;
+      else
+        this.x = this.x - 1;
     },
     moveUp() {
-      this.y--;
-      if(this.y < 0)
-        this.y = numRows + 1;
+      if(this.y - 1 < 0)
+        this.y = numRows - 1;
+      else
+        this.y = this.y - 1;
     },
     moveDown() {
-      this.y = (++this.y) % numRows;
+      if(this.y + 1 === numRows)
+        this.y = 0;
+      else
+        this.y = this.y + 1;
     }
   };
   
@@ -67,7 +75,7 @@
    var foodPixel,
     FOOD_COLOR = '#FFF';
     
-  var pixels, // This needs to be a two dimensional array alright? 
+  var pixels,
     width,
     height,
     numRows,
@@ -77,15 +85,15 @@
     move = Coord.moveRight;
    
    // Stores the previous frame's position of the snake
-   var prevSnakePosition = [];
+   var prevSnakeCoords = [];
    var debouncedNextFrame = debounce(nextFrame, 50);
 
   // Functions 
   function populatePixels() {
     width = window.innerWidth;
     height = window.innerHeight;
-    numRows = Math.ceil(height / FACTOR);
-    numCols = Math.ceil(width / FACTOR);
+    numRows = Math.floor(height / FACTOR);
+    numCols = Math.floor(width / FACTOR);
 
     canvas.width = width;
     canvas.height = height;
@@ -110,15 +118,18 @@
     ctx.clearRect(0, 0, width, height); 
 
     // An array of Coords holding coordinates of each grid cell that makes up the snake
-    var snakePosition = isFirstAnimationFrame() ? 
+    var snakeCoords = isFirstAnimationFrame() ? 
       initialSnakePosition(snakeHeadPosition, snakeLength) : 
-      newSnakePosition(Object.assign({}, snakeHeadPosition));
+      newSnakePosition(Object.create(Coord).init(snakeHeadPosition.x, snakeHeadPosition.y));
+
+    // if(snakeAteItself(snakeCoords)) 
+    //   console.log('The fucker ate itself');
 
     for(var i = 0; i < pixels.length; i++) {
       var cp = pixels[i]; // Current Pixel
 
       drawPixel(cp, GRID_COLOR);
-      if(isASnakePixel(cp, snakePosition)) {
+      if(isASnakePixel(cp, snakeCoords)) {
         drawPixel(cp, SNAKE_COLOR);
 
         if(isFoodPixel(cp)) { // If food and snake pixel coincide that means the snake ate the food
@@ -129,15 +140,19 @@
 
       if(isFoodPixel(cp)) 
         drawPixel(cp, FOOD_COLOR);
-
     }
-    prevSnakePosition = snakePosition;
+
+    prevSnakeCoords = snakeCoords;
     move.call(snakeHeadPosition);
     requestAnimationFrame(debouncedNextFrame);
   }
 
-  function snakeAteFood() {
-
+  function snakeAteItself(snake) {
+    // This needs to be fixed
+    // If two or more coords in snake has the same values
+    // for(var i = 1; i < snake.length; i++)
+		// 	if( snake[0].equals(snake[i]) || !snake[i]) return false;
+		// return true;
   }
 
   /**
@@ -180,7 +195,7 @@
    * @returns {Boolean}
    */
   function isFirstAnimationFrame() {
-    return prevSnakePosition.length === 0; // In the beginning there is no previous snake position.
+    return prevSnakeCoords.length === 0; // In the beginning there is no previous snake position.
   }
 
   // Snake Functions
@@ -193,10 +208,9 @@
    * @returns {Array}
    */
   function newSnakePosition(snakeHeadPosition) {
-    var changeInLength = snakeLength - prevSnakePosition.length;
-    var newPosition = [].concat(prevSnakePosition.slice(1));
+    var changeInLength = snakeLength - prevSnakeCoords.length;
+    var newPosition = prevSnakeCoords.slice(1);
     newPosition.push(snakeHeadPosition);
-
     if(changeInLength > 0) { 
       var deltaX = newPosition[1].x - newPosition[0].x;
       var deltaY = newPosition[1].y - newPosition[0].y;
@@ -215,7 +229,6 @@
           .forEach( (_, i) => newPosition.unshift(Object.create(Coord).init(newPosition[0].x + i + 1 ,newPosition[0].y)));
       }
     }
-
     return newPosition;
   }
 
@@ -241,9 +254,10 @@
    */
   function initialSnakePosition(headPosition, snakeLength) {
     var startPos = headPosition.x - snakeLength + 1;
-    return range(snakeLength).map( _ => {
+    var initialPos = range(snakeLength).map( _ => {
       return Object.create(Coord).init(startPos++, headPosition.y);
     });
+    return initialPos;
   }
 
   function snakeIsMovingVertically() {
