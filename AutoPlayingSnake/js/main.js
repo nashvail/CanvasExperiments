@@ -86,7 +86,7 @@
    
    // Stores the previous frame's position of the snake
    var prevSnakeCoords = [];
-   var debouncedNextFrame = debounce(nextFrame, 50);
+   var debouncedNextFrame = debounce(nextFrame, 30);
 
   // Functions 
   function populatePixels() {
@@ -112,6 +112,16 @@
     populatePixels();
     foodPixel = randomPixelOnGrid();
     requestAnimationFrame(nextFrame);
+
+    // Set a timer that would decrement the length of snake every 3 seconds
+    setInterval(function decreaseLength() {
+      console.log('I was called');
+      snakeLength--;
+      if(snakeLength === 0) {
+        console.log('Game over');
+      }
+    }, 1500);
+
   }
 
   function nextFrame() {
@@ -122,22 +132,17 @@
       initialSnakePosition(snakeHeadPosition, snakeLength) : 
       newSnakePosition(Object.create(Coord).init(snakeHeadPosition.x, snakeHeadPosition.y));
 
-    // if(snakeAteItself(snakeCoords)) 
-    //   console.log('The fucker ate itself');
-
     for(var i = 0; i < pixels.length; i++) {
       var cp = pixels[i]; // Current Pixel
 
       drawPixel(cp, GRID_COLOR);
       if(isASnakePixel(cp, snakeCoords)) {
         drawPixel(cp, SNAKE_COLOR);
-
         if(isFoodPixel(cp)) { // If food and snake pixel coincide that means the snake ate the food
           snakeLength++;
           foodPixel = randomPixelOnGrid();
         }
       }
-
       if(isFoodPixel(cp)) 
         drawPixel(cp, FOOD_COLOR);
     }
@@ -145,14 +150,6 @@
     prevSnakeCoords = snakeCoords;
     move.call(snakeHeadPosition);
     requestAnimationFrame(debouncedNextFrame);
-  }
-
-  function snakeAteItself(snake) {
-    // This needs to be fixed
-    // If two or more coords in snake has the same values
-    // for(var i = 1; i < snake.length; i++)
-		// 	if( snake[0].equals(snake[i]) || !snake[i]) return false;
-		// return true;
   }
 
   /**
@@ -228,6 +225,8 @@
         range(changeInLength)
           .forEach( (_, i) => newPosition.unshift(Object.create(Coord).init(newPosition[0].x + i + 1 ,newPosition[0].y)));
       }
+    } else if (changeInLength < 0) {
+      newPosition.shift();
     }
     return newPosition;
   }
