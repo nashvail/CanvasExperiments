@@ -1,13 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <title>Autoplaying Canvas Snake</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="css/main.css" rel="stylesheet">
-  </head>
-  <body>
+
+<head>
+  <title>Autoplaying Canvas Snake</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css?family=VT323" rel="stylesheet">
+  <link href="css/main.css" rel="stylesheet">
+</head>
+
+<body>
+  <div class="container">
     <canvas id="snakeBoard" width="100" height="100"></canvas>
-    <script type="text/javascript" src="js/main.js"></script>
-  </body>
+    <div class="modal" id="modal_start">
+      <ul class="instructions">
+        <li>Use arrow keys to control the Snake.</li>
+        <li>Don't let the snake starve.</li>
+        <li>Survive as long as you can.</li>
+        <li>do nut suk.</li>
+      </ul>
+      <button class="btn_primary" id="btn_start">START</button>
+    </div>
+
+    <div class="modal hidden" id="modal_end">
+      <ul class="instructions">
+        <li>Use arrow keys to control the Snake.</li>
+        <li>Don't let the snake starve.</li>
+        <li>Survive as long as you can.</li>
+        <li>do nut suk.</li>
+      </ul>
+      <button class="btn_primary" id="btn_restart">PLAY AGAIN</button>
+    </div>
+  </div>
+  <script type="text/javascript" src="js/main.js"></script>
+</body>
+
 </html>

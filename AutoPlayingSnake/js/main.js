@@ -3,6 +3,52 @@
 
   var canvas = document.getElementById('snakeBoard'),
     ctx = canvas.getContext('2d');
+
+  // Modals 
+  var startModal = {
+    elem: document.getElementById('modal_start'),
+    prim_button: document.getElementById('btn_start'), // Primary Button
+    hidden: false,
+    init() {
+      this.prim_button.addEventListener('click', () => { startGame(); });
+    },
+    show() { 
+      if(this.hidden){
+        this.elem.classList.remove('hidden');
+        this.hidden = false;
+      }
+    },
+    hide() {
+      if(!this.hidden){
+        this.elem.classList.add('hidden');
+        this.hidden = true;
+      }
+    }
+  };
+
+  var endModal = {
+    elem: document.getElementById('modal_end'),
+    prim_button: document.getElementById('btn_restart'), // Primary Button
+    hidden: true,
+    init() { 
+      this.prim_button.addEventListener('click', () => {restartGame(); });
+    },
+    show(){
+      if(this.hidden) {
+        this.elem.classList.remove('hidden');
+        this.hidden = false;
+      }
+    },
+    hide() {
+      if(!this.hidden) {
+        this.elem.classList.add('hidden');
+        this.hidden = true;
+      }
+    }
+  };
+
+  startModal.init();
+  endModal.init();
       
   // Represents a coordinate in the pixel space
   var Coord = {
@@ -80,7 +126,7 @@
    const FOOD_COLOR = '#FFF';
 
    // Animation Variables
-   const FRAME_REFRESH_INTERVAL = 40, // (milliseconds) Smaller this value faster the snake moves
+   const FRAME_REFRESH_INTERVAL = 30, // (milliseconds) Smaller this value faster the snake moves
     SNAKE_SHORTEN_INTERVAL = 1500; // milliseconds
     
    var snakeLength,
@@ -90,8 +136,11 @@
     INITIAL_SNAKE_LENGTH = 6;
    
    // Stores the previous frame's position of the snake
-   var prevSnakeCoords = [];
-   var debouncedNextFrame = debounce(nextFrame, FRAME_REFRESH_INTERVAL);
+   var prevSnakeCoords = [],
+    debouncedNextFrame = debounce(nextFrame, FRAME_REFRESH_INTERVAL),
+    reduceLengthTimeInterval,
+    rafId,
+    userIsPlaying = false;
 
   // Functions 
   function populatePixels() {
@@ -114,17 +163,36 @@
   
   function init() {
     document.getElementsByTagName('body')[0].setAttribute('bgcolor', BG_COLOR); 
+  }
+
+  function startGame() {
+    canvas.style.display = 'block';
+    userIsPlaying = true;
+    startModal.hide();
     populatePixels();
     initGameState();
-    requestAnimationFrame(nextFrame);
+    rafId = requestAnimationFrame(nextFrame);
+    reduceLengthTimeInterval = setInterval(decreaseSnakeLength, SNAKE_SHORTEN_INTERVAL);
+  }
 
-    // Set a timer that would decrement the length of snake
-    setInterval(function decreaseLength() {
-      snakeLength = snakeLength - 1;
-      if(snakeLength <= 0) { // A sort of game over for you here dear
-        initGameState();
-      }
-    }, SNAKE_SHORTEN_INTERVAL);
+  function decreaseSnakeLength() {
+    snakeLength = snakeLength - 1;
+    if(snakeLength <= 0) {
+      gameOver();
+    }
+  }
+
+  function gameOver() {
+    clearInterval(reduceLengthTimeInterval);
+    cancelAnimationFrame(rafId);
+    endModal.show();
+  }
+
+  function restartGame() {
+    endModal.hide();
+    initGameState();
+    requestAnimationFrame(nextFrame);
+    reduceLengthTimeInterval = setInterval(decreaseSnakeLength, SNAKE_SHORTEN_INTERVAL);
   }
 
   /**
@@ -349,8 +417,9 @@
   init();
 
   // Event listeners
-
-  window.addEventListener('resize', debounce(init, 150));
+  window.addEventListener('resize', debounce(() => {
+    if(userIsPlaying) gameOver();
+  }, 150));
 
   window.addEventListener('keydown', (event) => {
     switch(event.keyCode) {
