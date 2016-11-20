@@ -1,55 +1,55 @@
-(function() {
+(function () {
   'use strict';
 
   var canvas = document.getElementById('snakeBoard'),
     ctx = canvas.getContext('2d');
 
   // Modals 
-  var startModal = {
-    elem: document.getElementById('modal_start'),
-    prim_button: document.getElementById('btn_start'), // Primary Button
-    hidden: false,
+  var modal = {
     init() {
-      this.prim_button.addEventListener('click', () => { startGame(); });
+      console.log(this);
+      this.prim_button.addEventListener('click', this.handleClick);
     },
-    show() { 
-      if(this.hidden){
+    show() {
+      if (this.hidden) {
         this.elem.classList.remove('hidden');
         this.hidden = false;
       }
     },
     hide() {
-      if(!this.hidden){
+      if (!this.hidden) {
         this.elem.classList.add('hidden');
         this.hidden = true;
       }
-    }
+    },
+    handleClick() {}
+  };
+
+  var startModal = {
+    elem: document.getElementById('modal_start'),
+    prim_button: document.getElementById('btn_start'),
+    hidden: false,
+    init: modal.init,
+    show: modal.show,
+    hide: modal.hide,
+    handleClick: startGame
   };
 
   var endModal = {
     elem: document.getElementById('modal_end'),
-    prim_button: document.getElementById('btn_restart'), // Primary Button
+    prim_button: document.getElementById('btn_restart'),
     hidden: true,
-    init() { 
-      this.prim_button.addEventListener('click', () => {restartGame(); });
-    },
-    show(){
-      if(this.hidden) {
-        this.elem.classList.remove('hidden');
-        this.hidden = false;
-      }
-    },
-    hide() {
-      if(!this.hidden) {
-        this.elem.classList.add('hidden');
-        this.hidden = true;
-      }
-    }
+    init: modal.init,
+    show: modal.show,
+    hide: modal.hide,
+    handleClick: restartGame
   };
 
   startModal.init();
   endModal.init();
-      
+
+
+
   // Represents a coordinate in the pixel space
   var Coord = {
     x: null,
@@ -64,46 +64,46 @@
       return this.x === anotherCoord.x && this.y === anotherCoord.y;
     },
     moveRight() {
-      if(this.x + 1 === numCols)
+      if (this.x + 1 === numCols)
         this.x = 0;
-       else 
+      else
         this.x = this.x + 1;
     },
     moveLeft() {
-      if(this.x - 1 < 0) 
+      if (this.x - 1 < 0)
         this.x = numCols - 1;
       else
         this.x = this.x - 1;
     },
     moveUp() {
-      if(this.y - 1 < 0)
+      if (this.y - 1 < 0)
         this.y = numRows - 1;
       else
         this.y = this.y - 1;
     },
     moveDown() {
-      if(this.y + 1 === numRows)
+      if (this.y + 1 === numRows)
         this.y = 0;
       else
         this.y = this.y + 1;
     }
   };
-  
+
   // Represents a pixel in the grid
- var Pixel = {
+  var Pixel = {
     index: null,
     coord: null,
     color: null,
     alpha: null,
-    init({x = 0, y = 0, width = PIXEL_DIM, height = PIXEL_DIM, color = GRID_COLOR, alpha = 1} = 
-    {x: 0, y: 0, width: PIXEL_DIM, height: PIXEL_DIM, color: GRID_COLOR, alpha: 1}) {
+    init({x = 0, y = 0, width = PIXEL_DIM, height = PIXEL_DIM, color = GRID_COLOR, alpha = 1} =
+      { x: 0, y: 0, width: PIXEL_DIM, height: PIXEL_DIM, color: GRID_COLOR, alpha: 1 }) {
       this.coord = Object.create(Coord).init(x, y);
       this.width = width;
       this.height = height;
       this.color = color;
       this.alpha = alpha;
 
-      return this; 
+      return this;
     },
   };
 
@@ -121,22 +121,22 @@
     // helps in deciding the number of pixels in the grid when calculated later with window width and height
     FACTOR = PIXEL_DIM + PIXEL_SEPARATION;
 
-   // For food
-   var foodPixel;
-   const FOOD_COLOR = '#FFF';
+  // For food
+  var foodPixel;
+  const FOOD_COLOR = '#FFF';
 
-   // Animation Variables
-   const FRAME_REFRESH_INTERVAL = 30, // (milliseconds) Smaller this value faster the snake moves
+  // Animation Variables
+  const FRAME_REFRESH_INTERVAL = 30, // (milliseconds) Smaller this value faster the snake moves
     SNAKE_SHORTEN_INTERVAL = 1500; // milliseconds
-    
-   var snakeLength,
+
+  var snakeLength,
     snakeHeadPosition,
     move;
-   const SNAKE_COLOR = '#E49038',
+  const SNAKE_COLOR = '#E49038',
     INITIAL_SNAKE_LENGTH = 6;
-   
-   // Stores the previous frame's position of the snake
-   var prevSnakeCoords = [],
+
+  // Stores the previous frame's position of the snake
+  var prevSnakeCoords = [],
     debouncedNextFrame = debounce(nextFrame, FRAME_REFRESH_INTERVAL),
     reduceLengthTimeInterval,
     rafId,
@@ -154,45 +154,50 @@
 
     pixels = [];
 
-    for(var row = 0; row < numRows; row++) {
-      for(var col = 0; col < numCols; col++) {
-        pixels.push(Object.create(Pixel).init({x: col, y: row, color: GRID_COLOR}));
-			}
-		}
+    for (var row = 0; row < numRows; row++) {
+      for (var col = 0; col < numCols; col++) {
+        pixels.push(Object.create(Pixel).init({ x: col, y: row, color: GRID_COLOR }));
+      }
+    }
   }
-  
+
   function init() {
-    document.getElementsByTagName('body')[0].setAttribute('bgcolor', BG_COLOR); 
+    document.getElementsByTagName('body')[0].setAttribute('bgcolor', BG_COLOR);
   }
 
   function startGame() {
-    canvas.style.display = 'block';
-    userIsPlaying = true;
-    startModal.hide();
-    populatePixels();
-    initGameState();
-    rafId = requestAnimationFrame(nextFrame);
-    reduceLengthTimeInterval = setInterval(decreaseSnakeLength, SNAKE_SHORTEN_INTERVAL);
+    if(!userIsPlaying) {
+      canvas.style.display = 'block';
+      userIsPlaying = true;
+      startModal.hide();
+      populatePixels();
+      initGameState();
+      rafId = requestAnimationFrame(nextFrame);
+      reduceLengthTimeInterval = setInterval(decreaseSnakeLength, SNAKE_SHORTEN_INTERVAL);
+    }
   }
 
   function decreaseSnakeLength() {
     snakeLength = snakeLength - 1;
-    if(snakeLength <= 0) {
+    if (snakeLength <= 0) {
       gameOver();
     }
   }
 
   function gameOver() {
-    clearInterval(reduceLengthTimeInterval);
-    cancelAnimationFrame(rafId);
-    endModal.show();
+    if(userIsPlaying) {
+      clearInterval(reduceLengthTimeInterval);
+      cancelAnimationFrame(rafId);
+      endModal.show();
+      userIsPlaying = false;
+    }
   }
 
   function restartGame() {
-    endModal.hide();
-    initGameState();
-    requestAnimationFrame(nextFrame);
-    reduceLengthTimeInterval = setInterval(decreaseSnakeLength, SNAKE_SHORTEN_INTERVAL);
+    if(!userIsPlaying) {
+      endModal.hide();
+      startGame();
+    }
   }
 
   /**
@@ -207,25 +212,25 @@
   }
 
   function nextFrame() {
-    ctx.clearRect(0, 0, width, height); 
+    ctx.clearRect(0, 0, width, height);
 
     // An array of Coords holding coordinates of each grid cell that makes up the snake
-    var snakeCoords = isFirstAnimationFrame() ? 
-      initialSnakePosition(snakeHeadPosition, snakeLength) : 
+    var snakeCoords = isFirstAnimationFrame() ?
+      initialSnakePosition(snakeHeadPosition, snakeLength) :
       newSnakePosition(Object.create(Coord).init(snakeHeadPosition.x, snakeHeadPosition.y));
 
-    for(var i = 0; i < pixels.length; i++) {
+    for (var i = 0; i < pixels.length; i++) {
       var cp = pixels[i]; // Current Pixel
 
       drawPixel(cp, GRID_COLOR);
-      if(isASnakePixel(cp, snakeCoords)) {
+      if (isASnakePixel(cp, snakeCoords)) {
         drawPixel(cp, SNAKE_COLOR);
-        if(isFoodPixel(cp)) { // If food and snake pixel coincide that means the snake ate the food
+        if (isFoodPixel(cp)) { // If food and snake pixel coincide that means the snake ate the food
           snakeLength++;
           foodPixel = randomPixelOnGrid();
         }
       }
-      if(isFoodPixel(cp)) 
+      if (isFoodPixel(cp))
         drawPixel(cp, FOOD_COLOR);
     }
 
@@ -251,19 +256,19 @@
    */
   function randomPixelOnGrid() {
     return Object.create(Pixel).init({
-      x: Math.floor(Math.random() * numCols), 
+      x: Math.floor(Math.random() * numCols),
       y: Math.floor(Math.random() * numRows),
       color: FOOD_COLOR
     });
   }
 
- /**
-  * On the Pixel if grid checks if a pixel is a food pixel.
-
-  * @param {Object} pixel - Should be a Pixel Object
-  * @returns {Boolean}
-  */
- function isFoodPixel(pixel) {
+  /**
+   * On the Pixel if grid checks if a pixel is a food pixel.
+ 
+   * @param {Object} pixel - Should be a Pixel Object
+   * @returns {Boolean}
+   */
+  function isFoodPixel(pixel) {
     return pixel.coord.equals(foodPixel.coord);
   }
 
@@ -294,36 +299,36 @@
     var lastSnakeCoord = newPosition[0],
       secondLastSnakeCoord = newPosition[1];
 
-    if(prevSnakeCoords.length === 1 && changeInLength > 0) {
-      if(move === Coord.moveUp) {
+    if (prevSnakeCoords.length === 1 && changeInLength > 0) {
+      if (move === Coord.moveUp) {
         range(changeInLength)
-          .forEach( (_, i) => newPosition.unshift(Object.create(Coord).init(lastSnakeCoord.x ,lastSnakeCoord.y + i +1)));
-      } else if(move === Coord.moveRight) {
+          .forEach((_, i) => newPosition.unshift(Object.create(Coord).init(lastSnakeCoord.x, lastSnakeCoord.y + i + 1)));
+      } else if (move === Coord.moveRight) {
         range(changeInLength)
-          .forEach( (_, i) => newPosition.unshift(Object.create(Coord).init(lastSnakeCoord.x - i - 1 ,lastSnakeCoord.y)));
-      } else if(move === Coord.moveDown) {
-         range(changeInLength)
-          .forEach( (_, i) => newPosition.unshift(Object.create(Coord).init(lastSnakeCoord.x ,lastSnakeCoord.y - i - 1)));
-      } else if(move === Coord.moveLeft) {
-         range(changeInLength)
-          .forEach( (_, i) => newPosition.unshift(Object.create(Coord).init(lastSnakeCoord.x + i + 1 ,lastSnakeCoord.y)));
+          .forEach((_, i) => newPosition.unshift(Object.create(Coord).init(lastSnakeCoord.x - i - 1, lastSnakeCoord.y)));
+      } else if (move === Coord.moveDown) {
+        range(changeInLength)
+          .forEach((_, i) => newPosition.unshift(Object.create(Coord).init(lastSnakeCoord.x, lastSnakeCoord.y - i - 1)));
+      } else if (move === Coord.moveLeft) {
+        range(changeInLength)
+          .forEach((_, i) => newPosition.unshift(Object.create(Coord).init(lastSnakeCoord.x + i + 1, lastSnakeCoord.y)));
       }
-    } else if(prevSnakeCoords.length > 1 && changeInLength > 0) { 
+    } else if (prevSnakeCoords.length > 1 && changeInLength > 0) {
       var deltaX = secondLastSnakeCoord.x - lastSnakeCoord.x,
         deltaY = secondLastSnakeCoord.y - lastSnakeCoord.y;
 
-      if(deltaY < 0) { // Moving up
+      if (deltaY < 0) { // Moving up
         range(changeInLength)
-          .forEach( (_, i) => newPosition.unshift(Object.create(Coord).init(lastSnakeCoord.x ,lastSnakeCoord.y + i +1)));
-      } else if(deltaY > 0) { // Moving down
+          .forEach((_, i) => newPosition.unshift(Object.create(Coord).init(lastSnakeCoord.x, lastSnakeCoord.y + i + 1)));
+      } else if (deltaY > 0) { // Moving down
         range(changeInLength)
-          .forEach( (_, i) => newPosition.unshift(Object.create(Coord).init(lastSnakeCoord.x ,lastSnakeCoord.y - i - 1)));
-      } else if(deltaX < 0) { // Moving right
+          .forEach((_, i) => newPosition.unshift(Object.create(Coord).init(lastSnakeCoord.x, lastSnakeCoord.y - i - 1)));
+      } else if (deltaX < 0) { // Moving right
         range(changeInLength)
-          .forEach( (_, i) => newPosition.unshift(Object.create(Coord).init(lastSnakeCoord.x - i - 1 ,lastSnakeCoord.y)));
-      } else if(deltaX > 0) { // Moving left
+          .forEach((_, i) => newPosition.unshift(Object.create(Coord).init(lastSnakeCoord.x - i - 1, lastSnakeCoord.y)));
+      } else if (deltaX > 0) { // Moving left
         range(changeInLength)
-          .forEach( (_, i) => newPosition.unshift(Object.create(Coord).init(lastSnakeCoord.x + i + 1 ,lastSnakeCoord.y)));
+          .forEach((_, i) => newPosition.unshift(Object.create(Coord).init(lastSnakeCoord.x + i + 1, lastSnakeCoord.y)));
       }
     } else if (changeInLength < 0) {
       newPosition.shift();
@@ -342,7 +347,7 @@
   function isASnakePixel(pixel, snake) {
     return snake.some(snakePixel => snakePixel.x === pixel.coord.x && snakePixel.y === pixel.coord.y);
   }
-  
+
   /**
    * Based on snakeLength and snakeHeadPosition returns an array of Coords that 
    * represent the initial positions of snake pixels on the grid.
@@ -353,7 +358,7 @@
    */
   function initialSnakePosition(headPosition, snakeLength) {
     var startPos = headPosition.x - snakeLength + 1;
-    var initialPos = range(snakeLength).map( _ => {
+    var initialPos = range(snakeLength).map(_ => {
       return Object.create(Coord).init(startPos++, headPosition.y);
     });
     return initialPos;
@@ -382,7 +387,7 @@
     var length = Math.max(Math.ceil((stop - start) / step), 0);
     var range = new Array(length);
 
-    for (var idx = 0; idx < length; idx++, start += step) {
+    for (var idx = 0; idx < length; idx++ , start += step) {
       range[idx] = start;
     }
 
@@ -399,53 +404,53 @@
    */
   function debounce(func, wait, immediate) {
     var timeout;
-    return function() {
+    return function () {
       var context = this, args = arguments;
-      var later = function() {
+      var later = function () {
         timeout = null;
-        if(!immediate) func.apply(context, args);
+        if (!immediate) func.apply(context, args);
       };
-      
+
       var callNow = immediate && !timeout;
       clearTimeout(timeout);
       timeout = setTimeout(later, wait);
-      if(callNow) func.apply(context, args);
+      if (callNow) func.apply(context, args);
     };
   }
-  
+
   // Code execution starts from below here
   init();
 
   // Event listeners
   window.addEventListener('resize', debounce(() => {
-    if(userIsPlaying) gameOver();
+    if (userIsPlaying) gameOver();
   }, 150));
 
   window.addEventListener('keydown', (event) => {
-    switch(event.keyCode) {
+    switch (event.keyCode) {
       case 37: // Left
-        if(snakeIsMovingVertically())
+        if (snakeIsMovingVertically())
           move = Coord.moveLeft;
         event.preventDefault();
-      break;
+        break;
       case 38: // Up
-        if(snakeIsMovingHorizontally())
+        if (snakeIsMovingHorizontally())
           move = Coord.moveUp;
         event.preventDefault();
-      break;
+        break;
       case 39: // Right
-        if(snakeIsMovingVertically())
+        if (snakeIsMovingVertically())
           move = Coord.moveRight;
         event.preventDefault();
-      break;
+        break;
       case 40: // Down
-        if(snakeIsMovingHorizontally())
+        if (snakeIsMovingHorizontally())
           move = Coord.moveDown;
         event.preventDefault();
-      break;
-      default: 
+        break;
+      default:
         // Ignore
-      break;
+        break;
     };
   });
 
