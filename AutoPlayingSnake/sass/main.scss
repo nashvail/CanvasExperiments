@@ -21,19 +21,14 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-#snakeBoard {
-  display: none;
+  flex-direction: column;
 }
 
 .score {
-  position: absolute;
   font-size: 72px;
   color: white;
   font-weight: bold;
-  align-self: flex-start;
-  margin-top: 25px;
+  margin-bottom: 15px;
 }
 
 .flash {

@@ -25,6 +25,7 @@
     handleClick() {}
   };
 
+  // Modal shown at the beginning of the game.
   var startModal = {
     elem: document.getElementById('modal_start'),
     prim_button: document.getElementById('btn_start'),
@@ -35,6 +36,7 @@
     handleClick: startGame
   };
 
+  // Modal shown when the game ends.
   var endModal = {
     elem: document.getElementById('modal_end'),
     prim_button: document.getElementById('btn_restart'),
@@ -116,7 +118,7 @@
   const GRID_COLOR = '#222', // Color of the squares that make up the grid
     BG_COLOR = '#101010',
     PIXEL_DIM = 20, // (Grid square dimension) The width and height of each grid square
-    PIXEL_SEPARATION = 0, // PIXEL_SEPARATION between each square in the grid
+    PIXEL_SEPARATION = 2, // PIXEL_SEPARATION between each square in the grid
     // This factor after taking in account the dimension of each pixel and the separation between them
     // helps in deciding the number of pixels in the grid when calculated later with window width and height
     FACTOR = PIXEL_DIM + PIXEL_SEPARATION;
@@ -146,6 +148,12 @@
     score = 0;
 
   // Functions 
+
+
+  /**
+   * Creates and stores pixels to be drawn on the 
+   * canvas in an array. 
+   */
   function populatePixels() {
     width = +canvas.getAttribute('width').split('px')[0];
     height = +canvas.getAttribute('height').split('px')[0];
@@ -162,15 +170,19 @@
     }
   }
 
+  /**
+   * First function that fires on page load (of course after the IIFE)
+   */
   function init() {
     document.getElementsByTagName('body')[0].setAttribute('bgcolor', BG_COLOR);
   }
 
+  /**
+   * Begin playing the game 
+   */
   function startGame() {
     if(!userIsPlaying) {
       userIsPlaying = true;
-      // Show canvas
-      canvas.style.display = 'block';
       // Hide Modal
       startModal.hide();
       // Draw Game
@@ -187,6 +199,10 @@
     }
   }
 
+  /**
+   * Shortens snake length by one 
+   * every SNAKE_SHORTEN_INTERVAL seconds.
+   */
   function decreaseSnakeLength() {
     snakeLength = snakeLength - 1;
     if (snakeLength <= 0) {
@@ -194,11 +210,19 @@
     }
   }
 
+  /**
+   * Increments player score every
+   * SCORE_INCREMENT_INTERVAL seconds.
+   */
   function incrementScore() {
     score++;
     scoreContainer.innerHTML = '' + score;
   }
 
+  /**
+   * When length of the snake hits 0
+   * the following function is fired.
+   */
   function gameOver() {
     if(userIsPlaying) {
       userIsPlaying = false;
@@ -215,6 +239,8 @@
     }
   }
 
+  // Restarts the game, 
+  // Fired when 'Play again' button is clicked.
   function restartGame() {
     if(!userIsPlaying) {
       endModal.hide();
@@ -233,6 +259,10 @@
     move = Coord.moveRight;
   }
 
+  /**
+   * The game animates by showing multiple individual frames per second,
+   * the following function sets up each frame.
+   */
   function nextFrame() {
     ctx.clearRect(0, 0, width, height);
 

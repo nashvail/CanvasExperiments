@@ -20,29 +20,23 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
 }
 
-/* line 26, ../sass/main.scss */
-#snakeBoard {
-  display: none;
-}
-
-/* line 30, ../sass/main.scss */
+/* line 27, ../sass/main.scss */
 .score {
-  position: absolute;
   font-size: 72px;
   color: white;
   font-weight: bold;
-  align-self: flex-start;
-  margin-top: 25px;
+  margin-bottom: 15px;
 }
 
-/* line 39, ../sass/main.scss */
+/* line 34, ../sass/main.scss */
 .flash {
   animation: flash 1s linear 0s infinite forwards;
 }
 
-/* line 43, ../sass/main.scss */
+/* line 38, ../sass/main.scss */
 .modal {
   display: flex;
   flex-direction: column;
@@ -54,20 +48,20 @@ body {
   padding: 20px;
 }
 
-/* line 54, ../sass/main.scss */
+/* line 49, ../sass/main.scss */
 #modal_start {
   width: 500px;
   height: 200px;
 }
 
-/* line 59, ../sass/main.scss */
+/* line 54, ../sass/main.scss */
 .instructions {
   color: #fff;
   font-size: 28px;
   margin: 0;
 }
 
-/* line 65, ../sass/main.scss */
+/* line 60, ../sass/main.scss */
 .btn_primary {
   padding: 10px;
   background: #FFFFFF;
@@ -81,18 +75,18 @@ body {
   font-family: 'VT323';
   margin-top: 30px;
 }
-/* line 77, ../sass/main.scss */
+/* line 72, ../sass/main.scss */
 .btn_primary:active {
   box-shadow: none;
   transform: translate(3px, 3px);
 }
 
-/* line 83, ../sass/main.scss */
+/* line 78, ../sass/main.scss */
 #btn_restart {
   margin-top: 0;
 }
 
-/* line 87, ../sass/main.scss */
+/* line 82, ../sass/main.scss */
 .hidden {
   display: none;
 }
