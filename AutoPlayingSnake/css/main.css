@@ -3,7 +3,17 @@ body {
   font-family: 'VT323';
 }
 
-/* line 5, ../sass/main.scss */
+/* Animations */
+@keyframes flash {
+  from, 50%, to {
+    opacity: 1;
+  }
+  25%, 75% {
+    opacity: 0;
+  }
+}
+/* Styles */
+/* line 18, ../sass/main.scss */
 .container {
   width: 100vw;
   height: 100vh;
@@ -12,12 +22,27 @@ body {
   justify-content: center;
 }
 
-/* line 13, ../sass/main.scss */
+/* line 26, ../sass/main.scss */
 #snakeBoard {
   display: none;
 }
 
-/* line 17, ../sass/main.scss */
+/* line 30, ../sass/main.scss */
+.score {
+  position: absolute;
+  font-size: 72px;
+  color: white;
+  font-weight: bold;
+  align-self: flex-start;
+  margin-top: 25px;
+}
+
+/* line 39, ../sass/main.scss */
+.flash {
+  animation: flash 1s linear 0s infinite forwards;
+}
+
+/* line 43, ../sass/main.scss */
 .modal {
   display: flex;
   flex-direction: column;
@@ -29,26 +54,26 @@ body {
   padding: 20px;
 }
 
-/* line 28, ../sass/main.scss */
+/* line 54, ../sass/main.scss */
 #modal_start {
   width: 500px;
   height: 200px;
 }
 
-/* line 33, ../sass/main.scss */
+/* line 59, ../sass/main.scss */
 .instructions {
   color: #fff;
   font-size: 28px;
   margin: 0;
 }
 
-/* line 39, ../sass/main.scss */
+/* line 65, ../sass/main.scss */
 .btn_primary {
   padding: 10px;
   background: #FFFFFF;
   box-shadow: 7px 7px 0px 0px rgba(0, 0, 0, 0.5);
   border: none;
-  width: 120px;
+  width: 140px;
   height: 45px;
   cursor: pointer;
   font-size: 24px;
@@ -56,13 +81,18 @@ body {
   font-family: 'VT323';
   margin-top: 30px;
 }
-/* line 52, ../sass/main.scss */
+/* line 77, ../sass/main.scss */
 .btn_primary:active {
   box-shadow: none;
   transform: translate(3px, 3px);
 }
 
-/* line 58, ../sass/main.scss */
+/* line 83, ../sass/main.scss */
+#btn_restart {
+  margin-top: 0;
+}
+
+/* line 87, ../sass/main.scss */
 .hidden {
   display: none;
 }

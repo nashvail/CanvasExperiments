@@ -2,12 +2,12 @@
   'use strict';
 
   var canvas = document.getElementById('snakeBoard'),
-    ctx = canvas.getContext('2d');
+    ctx = canvas.getContext('2d'),
+    scoreContainer = document.getElementsByClassName('score')[0];
 
   // Modals 
   var modal = {
     init() {
-      console.log(this);
       this.prim_button.addEventListener('click', this.handleClick);
     },
     show() {
@@ -116,7 +116,7 @@
   const GRID_COLOR = '#222', // Color of the squares that make up the grid
     BG_COLOR = '#101010',
     PIXEL_DIM = 20, // (Grid square dimension) The width and height of each grid square
-    PIXEL_SEPARATION = 2, // PIXEL_SEPARATION between each square in the grid
+    PIXEL_SEPARATION = 0, // PIXEL_SEPARATION between each square in the grid
     // This factor after taking in account the dimension of each pixel and the separation between them
     // helps in deciding the number of pixels in the grid when calculated later with window width and height
     FACTOR = PIXEL_DIM + PIXEL_SEPARATION;
@@ -127,7 +127,8 @@
 
   // Animation Variables
   const FRAME_REFRESH_INTERVAL = 30, // (milliseconds) Smaller this value faster the snake moves
-    SNAKE_SHORTEN_INTERVAL = 1500; // milliseconds
+    SNAKE_SHORTEN_INTERVAL = 1500, // milliseconds
+    SCORE_INCREMENT_INTERVAL = 300; // milliseconds
 
   var snakeLength,
     snakeHeadPosition,
@@ -139,18 +140,18 @@
   var prevSnakeCoords = [],
     debouncedNextFrame = debounce(nextFrame, FRAME_REFRESH_INTERVAL),
     reduceLengthTimeInterval,
+    scoreTimeInterval,
     rafId,
-    userIsPlaying = false;
+    userIsPlaying = false,
+    score = 0;
 
   // Functions 
   function populatePixels() {
-    width = window.innerWidth;
-    height = window.innerHeight;
+    width = +canvas.getAttribute('width').split('px')[0];
+    height = +canvas.getAttribute('height').split('px')[0];
+
     numRows = Math.floor(height / FACTOR);
     numCols = Math.floor(width / FACTOR);
-
-    canvas.width = width;
-    canvas.height = height;
 
     pixels = [];
 
@@ -167,13 +168,22 @@
 
   function startGame() {
     if(!userIsPlaying) {
-      canvas.style.display = 'block';
       userIsPlaying = true;
+      // Show canvas
+      canvas.style.display = 'block';
+      // Hide Modal
       startModal.hide();
+      // Draw Game
       populatePixels();
       initGameState();
-      rafId = requestAnimationFrame(nextFrame);
+      // Initialize score
+      scoreContainer.classList.remove('flash');
+      scoreContainer.innerHTML = '' + score;
+      // Initialize timers
       reduceLengthTimeInterval = setInterval(decreaseSnakeLength, SNAKE_SHORTEN_INTERVAL);
+      scoreTimeInterval = setInterval(incrementScore, SCORE_INCREMENT_INTERVAL);
+      // Fire Animation
+      rafId = requestAnimationFrame(nextFrame);
     }
   }
 
@@ -184,12 +194,24 @@
     }
   }
 
+  function incrementScore() {
+    score++;
+    scoreContainer.innerHTML = '' + score;
+  }
+
   function gameOver() {
     if(userIsPlaying) {
-      clearInterval(reduceLengthTimeInterval);
-      cancelAnimationFrame(rafId);
-      endModal.show();
       userIsPlaying = false;
+      // Stop timers
+      clearInterval(reduceLengthTimeInterval);
+      clearInterval(scoreTimeInterval);
+      // Reset Score
+      score = 0;
+      scoreContainer.classList.add('flash');
+      // Show end modal
+      endModal.show();
+      // Stop Animation
+      cancelAnimationFrame(rafId);
     }
   }
 
@@ -422,9 +444,6 @@
   init();
 
   // Event listeners
-  window.addEventListener('resize', debounce(() => {
-    if (userIsPlaying) gameOver();
-  }, 150));
 
   window.addEventListener('keydown', (event) => {
     switch (event.keyCode) {

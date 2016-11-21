@@ -2,6 +2,19 @@ body {
   font-family: 'VT323';
 }
 
+/* Animations */
+@keyframes flash {
+  from, 50%, to {
+    opacity: 1;
+  }
+
+  25%, 75% {
+    opacity: 0;
+  }
+}
+
+/* Styles */
+
 .container {
   width: 100vw;
   height: 100vh;
@@ -12,6 +25,19 @@ body {
 
 #snakeBoard {
   display: none;
+}
+
+.score {
+  position: absolute;
+  font-size: 72px;
+  color: white;
+  font-weight: bold;
+  align-self: flex-start;
+  margin-top: 25px;
+}
+
+.flash {
+  animation: flash 1s linear 0s infinite forwards;
 }
 
 .modal {
@@ -41,18 +67,21 @@ body {
   background: #FFFFFF;
   box-shadow: 7px 7px 0px 0px rgba(0,0,0,0.50);
   border: none;
-  width: 120px;
+  width: 140px;
   height: 45px;
   cursor: pointer;
   font-size: 24px;
   align-self: center;
   font-family: 'VT323';
   margin-top: 30px;
-
   &:active {
     box-shadow: none;
     transform: translate(3px, 3px);
   }
+}
+
+#btn_restart {
+  margin-top: 0;
 }
 
 .hidden {
